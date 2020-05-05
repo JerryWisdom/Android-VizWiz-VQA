@@ -1,2 +1,3 @@
-# ChatUI
-![](http://upload-images.jianshu.io/upload_images/1433157-0aa324c41fffa12d.gif?imageMogr2/auto-orient/strip)
+<<<<<<< HEAD
+# Android-VizWiz-VQA
+>>>>>>> cf974fb6772c598a304da46ab0de8c67e0487c47
