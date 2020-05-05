@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <color name="colorBackground">#FFFFFA</color>
+    <color name="colorText">#FFFFFF</color>
+    <color name="colorTextHint">#51d8c7</color>
+
+    <!-- 其它背景色或分割线相关 -->
+    <color name="bg_content">#f3f3f3</color>
+    <color name="divider_line">#d9d9d9</color>
+
+    <!-- 字体色 -->
+    <color name="text_title">#1b1b1b</color>
+    <color name="text_content">#818181</color>
+    <color name="text_sub">#919191</color>
+    <color name="text_hint">#c7c7c7</color>
+    <color name="text_black">#404040</color>
+
+    <!-- 画面背景色 -->
+    <drawable name="layout_backgroud">#000000</drawable>
+
+    <!-- 分割线背景色 -->
+    <drawable name="line_background">#161823</drawable>
+
+    <!--<color name="white">#FFFFFF</color>-->
+
+    <!-- 控件按下时显示的颜色 -->
+    <color name="list_backgroud_color">#2fb3cb</color>
+    <color name="title_color">#0f8ec5</color>
+    <color name="content_color">#737373</color>
+</resources>
