@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.utils.data as data
 import torchvision.transforms as transforms
+
 import requests, urllib, socket
 from tqdm import tqdm
 from preprocessing import image_features_extraction as imf
@@ -17,14 +18,18 @@ from flask import Flask, render_template, request, redirect, url_for, make_respo
 from werkzeug.utils import secure_filename
 from datetime import timedelta
 from werkzeug.datastructures import CombinedMultiDict, MultiDict
-# from VToW_xunfei.asr_Baidu_api import VoiceToWord as VW
-from VToW_xunfei.weblfasr_python3_demo.weblfasr_python3_demo import vtow as VW
+
+from pydub import AudioSegment
+AudioSegment.converter = "D:\\ffmpeg-20200504-5767a2e-win64-static\\bin\\ffmpeg.exe"
+AudioSegment.ffmpeg = "D:\\ffmpeg-20200504-5767a2e-win64-static\\bin\\ffmpeg.exe"
+AudioSegment.ffprobe = "D:\\ffmpeg-20200504-5767a2e-win64-static\\bin\\ffprobe.exe"
+# from VToW_xunfei.weblfasr_python3_demo.weblfasr_python3_demo import vtow as VW
+import speech_recognition as sr  # python自带语音识别库识别语音文件（wav）
+from python_speech_recognition import sphinx, google, wit, bing, ibm
+# 其中sphinx的可以离线使用，需要安装sphinx包，其他的几个都要联网。谷歌的不需要注册，其他几个需要注册码
 from VToW_xunfei.translate import translation as tl
 from translate import Translator
-# # 以下是将简单句子从英语翻译中文
-# translator= Translator(to_lang="chinese")
-# translation = translator.translate("Good night!")
-# print translation
+
 
 # Load config yaml file
 parser = argparse.ArgumentParser()
@@ -110,6 +115,7 @@ def NumToEng(ans):
     if ans=="9": return "nine" 
     if ans=="10": return "ten"
     else: return ans
+  
     
 # 先接收用户上传的图片
 @app.route('/register/', methods=['POST','GET'])  # 添加路由  'POST','GET'
@@ -189,12 +195,27 @@ def upload1():
     except Exception as e:
         print('except:', e)
 
-    # WS(res);   
     # 将回答转换为语音的最大问题是语音数据格式，是amr、MP3还是二进制数据
-    # 使用讯飞的合成API，在真机上调试，放弃
     # 已解决直接点击播放消息框，直接用import android.speech.tts.TextToSpeech
     # 新增的语音识别、转换模块，但是对于盲人，加入语音唤醒功能会更完善，考虑AIsound
     # 安卓模拟器是X86架构，无法运行arm架构的讯飞demo
+
+
+import os
+import subprocess
+ 
+def amr2mp3(amr_path,mp3_path=None):
+    path, name = os.path.split(amr_path)
+    if name.split('.')[-1]!='amr':
+        print('The voice_path not a amr file!')
+        return 0
+    if mp3_path is None or mp3_path.split('.')[-1]!='mp3':
+        mp3_path = os.path.join(path, str(time.time()) +'.mp3')
+    error = subprocess.call(['D:\\ffmpeg-20200504-5767a2e-win64-static\\bin\\ffmpeg','-i',amr_path,mp3_path])
+    print(error)
+    if error: return 0
+    print('amr2mp3 success')
+    return mp3_path
 
 @app.route('/voiceQues/', methods=['POST','GET'])  # 添加路由  '
 def upload3():
@@ -216,24 +237,37 @@ def upload3():
     all_data = all_data.to_dict()
     f = all_data['voice_ques%s'%userip]   #'question1921682322'
     # 百度api的文件后缀只支持 pcm/wav/amr 格式，极速版额外支持m4a格式
-    voice_filename = 'testvoice_%s.wav'%ip_address
+    voice_filename = 'testvoice_%s.amr'%ip_address
 
     upload_path = os.path.join(p, 'static', secure_filename(voice_filename))
     f.save(upload_path)
-
+    wav_path = os.path.join(p, 'static', 'testvoice_%s.wav'%ip_address)
     # 新增的客户端语音转文字功能,upload_path是下载语音文件的路径
     # 语音转文字的TXT结果已生成，每次写覆盖，进行中文及符号过滤，仅保留英文
     # 这里安卓客户端输入中文语音问题，在后台调用有道api翻译为英文问题
-    xunfei = ""
+    voice = ""
     res = ""
     voice_ques = ""
-    try:
-        xunfei = VW(upload_path)
-        voice_ques = tl(xunfei)   # cleantxt(VW(upload_path))
+    try:        
+        mp3_path = amr2mp3(upload_path)
+        song = AudioSegment.from_mp3(mp3_path)
+        song.export(os.path.join(p, 'static', 'testvoice_%s.wav'%ip_address), format="wav")
+        with sr.AudioFile(wav_path) as source:  
+            # AudioFile 类可以通过音频文件的路径进行初始化
+            r = sr.Recognizer()
+            audio = r.record(source)  # 从音频文件中获取数据
+        print("Submitting To Speech to Text:")
+        voice = sphinx(audio)
+        print(voice)
+        zhPattern = re.compile(u'[\u4e00-\u9fa5]+')
+        if(zhPattern.search(voice)):   # 存在中文
+            voice_ques = tl(voice)   # cleantxt(VW(upload_path))
+        else: voice_ques = voice
         # for tag in ['，', '。', '！', '？', '：', '；']:
         #     if tag in voice_ques:
         #         voice_ques = voice_ques.replace(tag, ''); 
         print(voice_ques)
+        
         img_filename = 'vqa_test_%s.jpg'%ip_address
         att_fea = np.load('prepro_data/att_fea_%s.npy'%ip_address)
         noatt_fea = np.load('prepro_data/noatt_fea_%s.npy'%ip_address)
@@ -245,7 +279,8 @@ def upload3():
         # 使用讯飞的合成API，在真机上调试，放弃
         # 已解决直接点击播放消息框，直接用import android.speech.tts.TextToSpeech
         print("Q: "+voice_ques+"\n"+"A: "+res)
-        res = xunfei + "\n" + voice_ques + "\n" + res
+        if(voice_ques != voice): res = "Ques: " + voice + " 译: " + voice_ques + "\n" + res
+        else: res = "Ques: " + voice + "\n" + res
         pass
     except Exception as e:
         print('except:', e)

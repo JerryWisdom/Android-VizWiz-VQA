@@ -2,6 +2,7 @@ package com.rance.chatui.ui.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
@@ -11,6 +12,7 @@ import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.rance.chatui.model.User;
 import com.rance.chatui.R;
@@ -19,10 +21,22 @@ import com.rance.chatui.sql.DatabaseHelper;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.io.File;
+import java.io.IOException;
+
 import butterknife.ButterKnife;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
+    private static Request.Builder builder = new Request.Builder();
+    OkHttpClient client = new OkHttpClient();
     private final AppCompatActivity activity = LoginActivity.this;
 
     private NestedScrollView nestedScrollView;

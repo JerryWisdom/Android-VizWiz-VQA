@@ -347,7 +347,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         popupWindow1.showAtLocation(view, Gravity.NO_GRAVITY, location[0], location[1]-popupWindow1.getHeight()-deleteHeight);
         Log.d(TAG, "showDialog1 Click 111");
 
-        popView1.findViewById(R.id.delete).setOnClickListener(clickListener1);
+        popView1.findViewById(R.id.delete).setOnClickListener(clickListener1);   //写在后面
         popView1.findViewById(R.id.translation).setOnClickListener(clickListener1);
         popView1.findViewById(R.id.word_to_speech).setOnClickListener(clickListener1);
     }
@@ -678,7 +678,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                             @Override
                             public void run() {
                                 Log.d(TAG, "HTTP Connection Failed");
-                                Toast.makeText(MainActivity.this, "服务器错误", Toast.LENGTH_SHORT).show();
+//                                Toast.makeText(MainActivity.this, "服务器错误", Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
@@ -709,13 +709,14 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                                     new Handler().postDelayed(new Runnable() {
                                         public void run() {
                                             MessageInfo message = new MessageInfo();
-                                            message.setContent(res.split("\n")[2]);
-                                            voice_translate = "Chinese: "+ res.split("\n")[0] + "\nEnglish: "+res.split("\n")[1];
+                                            message.setContent(res.split("\n")[1]);
+//                                            voice_translate = "Chinese: "+ res.split("\n")[0] + "\nEnglish: "+res.split("\n")[1];
+                                            voice_translate = res.split("\n")[0];
                                             Log.d(TAG, "RESULT: " + res);
                                             if (textToSpeech != null && !textToSpeech.isSpeaking()) {
                                                 textToSpeech.setPitch(1.0f);
                                                 textToSpeech.setSpeechRate(0.8f);
-                                                textToSpeech.speak(res.split("\n")[2], TextToSpeech.QUEUE_FLUSH, null);
+                                                textToSpeech.speak(res.split("\n")[1], TextToSpeech.QUEUE_FLUSH, null);
                                             }
                                             message.setType(Constants.CHAT_ITEM_TYPE_LEFT);
                                             message.setHeader("https://i.loli.net/2019/11/08/dcxpUF2qI9Szl8W.jpg");
